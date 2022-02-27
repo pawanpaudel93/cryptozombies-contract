@@ -3,16 +3,23 @@ pragma solidity 0.8.0;
 
 import "./ZombieHelper.sol";
 
-contract ZombieAttack is ZombieHelper {
-    uint256 private randNonce = 0;
-    uint256 private attackVictoryProbability = 70;
+abstract contract ZombieAttack is ZombieHelper {
+    uint256 private _randNonce = 0;
+    uint256 private _attackVictoryProbability = 70;
+
+    event Attacked(
+        uint256 indexed attackerId,
+        uint256 indexed targetId,
+        address target,
+        bool win
+    );
 
     function randMod(uint256 _modulus) internal returns (uint256) {
-        randNonce = randNonce++;
+        _randNonce++;
         return
             uint256(
                 keccak256(
-                    abi.encodePacked(block.timestamp, msg.sender, randNonce)
+                    abi.encodePacked(block.timestamp, msg.sender, _randNonce)
                 )
             ) % _modulus;
     }
@@ -23,16 +30,23 @@ contract ZombieAttack is ZombieHelper {
     {
         Zombie storage myZombie = zombies[_zombieId];
         Zombie storage enemyZombie = zombies[_targetId];
+        require(
+            ownerOf(_zombieId) != ownerOf(_targetId),
+            "Cannot attack your own zombie"
+        );
+        bool win = false;
         uint256 rand = randMod(100);
-        if (rand <= attackVictoryProbability) {
-            myZombie.winCount = myZombie.winCount++;
-            myZombie.level = myZombie.level++;
-            enemyZombie.lossCount = enemyZombie.lossCount++;
+        if (rand <= _attackVictoryProbability) {
+            win = true;
+            myZombie.winCount++;
+            myZombie.level++;
+            enemyZombie.lossCount++;
             feedAndMultiply(_zombieId, enemyZombie.dna, "zombie");
         } else {
-            myZombie.lossCount = myZombie.lossCount++;
-            enemyZombie.winCount = enemyZombie.winCount++;
+            myZombie.lossCount++;
+            enemyZombie.winCount++;
             _triggerCooldown(myZombie);
         }
+        emit Attacked(_zombieId, _targetId, ownerOf(_targetId), win);
     }
 }

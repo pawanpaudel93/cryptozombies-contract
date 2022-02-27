@@ -21,12 +21,12 @@ interface KittyInterface {
         );
 }
 
-contract ZombieFeeding is ZombieFactory {
+abstract contract ZombieFeeding is ZombieFactory {
     KittyInterface private kittyContract;
 
     modifier onlyOwnerOf(uint256 _zombieId) {
         require(
-            msg.sender == zombieToOwner[_zombieId],
+            msg.sender == ownerOf(_zombieId),
             "Only owner can call this function"
         );
         _;

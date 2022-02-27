@@ -3,7 +3,7 @@ pragma solidity 0.8.0;
 
 import "./ZombieFeeding.sol";
 
-contract ZombieHelper is ZombieFeeding {
+abstract contract ZombieHelper is ZombieFeeding {
     uint256 public levelUpFee = 0.001 ether;
 
     modifier aboveLevel(uint256 _level, uint256 _zombieId) {
@@ -25,7 +25,7 @@ contract ZombieHelper is ZombieFeeding {
 
     function levelUp(uint256 _zombieId) external payable {
         require(msg.value == levelUpFee, "Not enough ether");
-        zombies[_zombieId].level = zombies[_zombieId].level++;
+        zombies[_zombieId].level++;
     }
 
     function changeName(uint256 _zombieId, string memory _newName)
@@ -47,16 +47,35 @@ contract ZombieHelper is ZombieFeeding {
     function getZombiesByOwner(address _owner)
         external
         view
-        returns (uint256[] memory)
+        returns (Zombie[] memory)
     {
-        uint256[] memory result = new uint256[](ownerZombieCount[_owner]);
+        Zombie[] memory ownerZombies = new Zombie[](balanceOf(_owner));
         uint256 counter = 0;
         for (uint256 i = 0; i < zombies.length; i++) {
-            if (zombieToOwner[i] == _owner) {
-                result[counter] = i;
+            if (ownerOf(i) == _owner) {
+                ownerZombies[counter] = zombies[i];
                 counter++;
             }
         }
-        return result;
+        return ownerZombies;
+    }
+
+    function getZombies(uint256 _startIndex, uint256 _totalSize)
+        external
+        view
+        returns (Zombie[] memory)
+    {
+        if (_startIndex > zombies.length) {
+            return new Zombie[](0);
+        }
+        uint256 _endIndex = _startIndex + _totalSize;
+        if (_endIndex > zombies.length) {
+            _endIndex = zombies.length;
+        }
+        Zombie[] memory zombiesToReturn = new Zombie[](_endIndex - _startIndex);
+        for (uint256 i = _startIndex; i < _endIndex; i++) {
+            zombiesToReturn[i - _startIndex] = zombies[i];
+        }
+        return zombiesToReturn;
     }
 }

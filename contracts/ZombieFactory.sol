@@ -2,9 +2,15 @@
 pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract ZombieFactory is Ownable {
-    event NewZombie(uint256 zombieId, string name, uint256 dna);
+abstract contract ZombieFactory is ERC721, Ownable {
+    event NewZombie(
+        address indexed creator,
+        uint256 zombieId,
+        string name,
+        uint256 dna
+    );
 
     uint256 public dnaDigits = 16;
     uint256 public dnaModulus = 10**dnaDigits;
@@ -12,6 +18,7 @@ contract ZombieFactory is Ownable {
 
     struct Zombie {
         string name;
+        uint256 id;
         uint256 dna;
         uint32 level;
         uint32 readyTime;
@@ -21,17 +28,21 @@ contract ZombieFactory is Ownable {
 
     Zombie[] public zombies;
 
-    mapping(uint256 => address) public zombieToOwner;
-    mapping(address => uint256) public ownerZombieCount;
-
     function _createZombie(string memory _name, uint256 _dna) internal {
+        uint256 id = zombies.length;
         zombies.push(
-            Zombie(_name, _dna, 1, uint32(block.timestamp + cooldownTime), 0, 0)
+            Zombie(
+                _name,
+                id,
+                _dna,
+                1,
+                uint32(block.timestamp + cooldownTime),
+                0,
+                0
+            )
         );
-        uint256 id = zombies.length - 1;
-        zombieToOwner[id] = msg.sender;
-        ownerZombieCount[msg.sender] = ownerZombieCount[msg.sender]++;
-        emit NewZombie(id, _name, _dna);
+        _safeMint(msg.sender, id);
+        emit NewZombie(msg.sender, id, _name, _dna);
     }
 
     function _generateRandomDna(string memory _str)
@@ -44,7 +55,7 @@ contract ZombieFactory is Ownable {
     }
 
     function createRandomZombie(string memory _name) public {
-        require(ownerZombieCount[msg.sender] == 0, "You already have a zombie");
+        require(balanceOf(msg.sender) == 0, "You already have a zombie");
         uint256 randDna = _generateRandomDna(_name);
         randDna = randDna - (randDna % 100);
         _createZombie(_name, randDna);
