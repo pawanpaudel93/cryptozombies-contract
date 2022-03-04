@@ -43,7 +43,13 @@ abstract contract ZombieFactory is ERC721, Ownable, VRFConsumerBaseV2 {
         string zombieName;
     }
 
-    mapping(uint256 => Request) internal requestIdToAddress;
+    struct AttackRequest {
+        uint256 attackerId;
+        uint256 targetId;
+    }
+
+    mapping(uint256 => AttackRequest) internal _attackRequests;
+    mapping(uint256 => Request) internal _createRequests;
 
     Zombie[] public zombies;
 
@@ -81,16 +87,7 @@ abstract contract ZombieFactory is ERC721, Ownable, VRFConsumerBaseV2 {
             callbackGasLimit,
             numWords
         );
-        requestIdToAddress[requestId] = Request(msg.sender, _name);
+        _createRequests[requestId] = Request(msg.sender, _name);
         emit RandomRequest(requestId, msg.sender);
-    }
-
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
-        internal
-        override
-    {
-        Request storage request = requestIdToAddress[requestId];
-        uint256 randDna = randomWords[0] % dnaModulus;
-        _createZombie(request.requester, request.zombieName, randDna);
     }
 }

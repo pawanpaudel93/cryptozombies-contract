@@ -89,11 +89,11 @@ describe("CryptoZombies", function () {
       .connect(bob)
       .createRandomZombie(zombieNames[1]);
     let receipt = await createTx.wait();
-    const requestId = receipt.events?.find(
+    let requestId = receipt.events?.find(
       (e: any) => e.event === "RandomRequest"
     )?.args?.requestId;
 
-    const tx = await vrfCoordinator!
+    let tx = await vrfCoordinator!
       .connect(bob)
       .fulfillRandomWords(requestId, contractInstance.address);
     receipt = await tx.wait();
@@ -118,10 +118,16 @@ describe("CryptoZombies", function () {
       secondZombieId
     );
     receipt = await attackTx.wait();
-    const { attackerId, targetId } = receipt.events?.find(
-      (e: any) => e.event === "Attacked"
-    )?.args;
-    expect(attackerId).to.equal(firstZombieId);
-    expect(targetId).to.equal(secondZombieId);
+    requestId = receipt.events?.find((e: any) => e.event === "RandomRequest")
+      ?.args?.requestId;
+    tx = await vrfCoordinator!.fulfillRandomWords(
+      requestId,
+      contractInstance.address
+    );
+    receipt = await tx.wait();
+    expect(
+      receipt.events.find((e: any) => e.event === "RandomWordsFulfilled").args
+        .success
+    ).to.equal(true);
   });
 });
