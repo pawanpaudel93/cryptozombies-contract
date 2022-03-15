@@ -8,10 +8,12 @@ contract CryptoZombies is ZombieAttack {
         string memory _name,
         string memory _symbol,
         uint64 _subscriptionId,
-        address _vrfCoordinator
+        address _vrfCoordinator,
+        bytes32 _keyHash
     ) ERC721(_name, _symbol) VRFConsumerBaseV2(_vrfCoordinator) {
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         subscriptionId = _subscriptionId;
+        keyHash = _keyHash;
     }
 
     function kill() public onlyOwner {

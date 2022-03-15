@@ -18,14 +18,16 @@ export const deployMocks = async () => {
 
 export const deploy = async (
   subscriptionId: number,
-  vrfCoordinatorV2Address: string
+  vrfCoordinatorV2Address: string,
+  keyHash: string
 ) => {
   const CryptoZombies = await ethers.getContractFactory("CryptoZombies");
   const cryptoZombies = await CryptoZombies.deploy(
     "CryptoZombies",
     "CRZ",
     subscriptionId,
-    vrfCoordinatorV2Address
+    vrfCoordinatorV2Address,
+    keyHash
   );
 
   await cryptoZombies.deployed();
@@ -56,12 +58,17 @@ export const deployCryptoZombies = async () => {
     );
     await tx.wait();
 
-    cryptoZombies = await deploy(subId, vrfCoordinatorV2Mock.address);
+    cryptoZombies = await deploy(
+      subId,
+      vrfCoordinatorV2Mock.address,
+      process.env.RINKEBY_KEY_HASH!
+    );
     return { cryptoZombies, vrfCoordinatorV2Mock };
   } else {
     cryptoZombies = await deploy(
       parseInt(process.env.RINKEBY_CHAINLINK_SUB_ID!),
-      process.env.RINKEBY_VRF_COORDINATOR_V2_ADDRESS!
+      process.env.RINKEBY_VRF_COORDINATOR_V2_ADDRESS!,
+      process.env.RINKEBY_KEY_HASH!
     );
     return { cryptoZombies };
   }
