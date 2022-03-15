@@ -20,13 +20,13 @@ abstract contract ZombieFactory is ERC721, Ownable, VRFConsumerBaseV2 {
     VRFCoordinatorV2Interface internal COORDINATOR;
     uint64 internal subscriptionId;
     bytes32 internal keyHash;
-    uint32 internal callbackGasLimit = 160000;
+    uint32 internal callbackGasLimit = 180000;
     uint16 internal requestConfirmations = 3;
     uint32 internal numWords = 1;
 
-    uint256 public dnaDigits = 16;
-    uint256 public dnaModulus = 10**dnaDigits;
-    uint256 public cooldownTime = 1 days;
+    uint256 private dnaDigits = 16;
+    uint256 internal dnaModulus = 10**dnaDigits;
+    uint256 internal cooldownTime = 1 days;
 
     struct Zombie {
         string name;
@@ -44,6 +44,7 @@ abstract contract ZombieFactory is ERC721, Ownable, VRFConsumerBaseV2 {
     }
 
     struct AttackRequest {
+        address attacker;
         uint256 attackerId;
         uint256 targetId;
     }

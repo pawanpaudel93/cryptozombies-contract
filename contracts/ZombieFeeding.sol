@@ -44,28 +44,30 @@ abstract contract ZombieFeeding is ZombieFactory {
         return (_zombie.readyTime <= block.timestamp);
     }
 
-    function feedAndMultiply(
+    function _feedAndMultiply(
+        address attacker,
         uint256 _zombieId,
         uint256 _targetDna,
         string memory _species
-    ) internal onlyOwnerOf(_zombieId) {
+    ) internal {
         Zombie storage myZombie = zombies[_zombieId];
         require(_isReady(myZombie), "Zombie is not ready");
         _targetDna = _targetDna % dnaModulus;
         uint256 newDna = (myZombie.dna + _targetDna) / 2;
+
         if (
             keccak256(abi.encodePacked(_species)) ==
             keccak256(abi.encodePacked("kitty"))
         ) {
             newDna = newDna - (newDna % 100) + 99;
         }
-        _createZombie("NoName", newDna);
+        _createZombie(attacker, "NoName", newDna);
         _triggerCooldown(myZombie);
     }
 
     function feedOnKitty(uint256 _zombieId, uint256 _kittyId) public {
         uint256 kittyDna;
         (, , , , , , , , , kittyDna) = kittyContract.getKitty(_kittyId);
-        feedAndMultiply(_zombieId, kittyDna, "kitty");
+        _feedAndMultiply(msg.sender, _zombieId, kittyDna, "kitty");
     }
 }

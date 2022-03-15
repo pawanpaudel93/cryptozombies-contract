@@ -31,7 +31,7 @@ export const deploy = async (
   await cryptoZombies.deployed();
   if (network.name === "rinkeby") {
     const tx = await cryptoZombies.setKittyContractAddress(
-      "0x16baF0dE678E52367adC69fD067E5eDd1D33e3bF"
+      process.env.RINKEBY_CRYPTO_KITTIES_CONTRACT!
     );
     await tx.wait();
   }
@@ -60,8 +60,8 @@ export const deployCryptoZombies = async () => {
     return { cryptoZombies, vrfCoordinatorV2Mock };
   } else {
     cryptoZombies = await deploy(
-      693,
-      "0x6168499c0cFfCaCD319c818142124B7A15E857ab"
+      parseInt(process.env.RINKEBY_CHAINLINK_SUB_ID!),
+      process.env.RINKEBY_VRF_COORDINATOR_V2_ADDRESS!
     );
     return { cryptoZombies };
   }

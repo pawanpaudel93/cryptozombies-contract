@@ -15,6 +15,7 @@ abstract contract ZombieAttack is ZombieHelper {
     );
 
     function _attack(
+        address attacker,
         uint256 _attackerId,
         uint256 _targetId,
         uint256 _randNumber
@@ -27,7 +28,7 @@ abstract contract ZombieAttack is ZombieHelper {
             myZombie.winCount++;
             myZombie.level++;
             enemyZombie.lossCount++;
-            feedAndMultiply(_attackerId, enemyZombie.dna, "zombie");
+            _feedAndMultiply(attacker, _attackerId, enemyZombie.dna, "zombie");
         } else {
             myZombie.lossCount++;
             enemyZombie.winCount++;
@@ -51,7 +52,11 @@ abstract contract ZombieAttack is ZombieHelper {
             callbackGasLimit,
             numWords
         );
-        _attackRequests[requestId] = AttackRequest(_zombieId, _targetId);
+        _attackRequests[requestId] = AttackRequest(
+            msg.sender,
+            _zombieId,
+            _targetId
+        );
         emit RandomRequest(requestId, msg.sender);
     }
 }

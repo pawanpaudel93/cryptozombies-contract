@@ -22,20 +22,29 @@ contract CryptoZombies is ZombieAttack {
         internal
         override
     {
-        Request storage createRequest = _createRequests[requestId];
+        Request memory createRequest = _createRequests[requestId];
+        AttackRequest memory attackRequest = _attackRequests[requestId];
+        require(
+            createRequest.requester != address(0) ||
+                attackRequest.attacker != address(0),
+            "Invalid request"
+        );
+
         if (createRequest.requester != address(0)) {
             uint256 randDna = randomWords[0] % dnaModulus;
+            delete _createRequests[requestId];
             _createZombie(
                 createRequest.requester,
                 createRequest.zombieName,
                 randDna
             );
         } else {
-            AttackRequest storage attackRequest = _attackRequests[requestId];
+            delete _attackRequests[requestId];
             _attack(
+                attackRequest.attacker,
                 attackRequest.attackerId,
                 attackRequest.targetId,
-                randomWords[0]
+                randomWords[0] % 100
             );
         }
     }
