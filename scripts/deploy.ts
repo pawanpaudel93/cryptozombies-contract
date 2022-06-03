@@ -1,11 +1,14 @@
-import { deployCryptoZombies } from "./utils";
-
+import { deployments } from "hardhat";
 async function main() {
-  const { cryptoZombies } = await deployCryptoZombies();
-  console.log("CryptoZombies deployed to:", cryptoZombies.address);
+    await deployments.fixture(["all"]);
+    const cryptoZombies = await deployments.get("CryptoZombies");
+    console.log(
+        "Successfully deployed CryptoZombies to:",
+        cryptoZombies.address
+    );
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+    console.error(error);
+    process.exitCode = 1;
 });

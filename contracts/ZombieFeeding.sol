@@ -24,10 +24,10 @@ interface KittyInterface {
 abstract contract ZombieFeeding is ZombieFactory {
     KittyInterface private kittyContract;
 
-    modifier onlyOwnerOf(uint256 _zombieId) {
+    modifier onlyOwnerOf(uint256 zombieId) {
         require(
-            msg.sender == ownerOf(_zombieId),
-            "Only owner can call this function"
+            msg.sender == ownerOf(zombieId),
+            "Not the owner of this zombie"
         );
         _;
     }
@@ -36,27 +36,27 @@ abstract contract ZombieFeeding is ZombieFactory {
         kittyContract = KittyInterface(_address);
     }
 
-    function _triggerCooldown(Zombie storage _zombie) internal {
-        _zombie.readyTime = uint32(block.timestamp + cooldownTime);
+    function _triggerCooldown(Zombie storage zombie) internal {
+        zombie.readyTime = uint64(block.timestamp + COOLDOWN_TIME);
     }
 
-    function _isReady(Zombie storage _zombie) internal view returns (bool) {
-        return (_zombie.readyTime <= block.timestamp);
+    function _isReady(Zombie storage zombie) internal view returns (bool) {
+        return (zombie.readyTime <= block.timestamp);
     }
 
     function _feedAndMultiply(
         address attacker,
-        uint256 _zombieId,
-        uint256 _targetDna,
-        string memory _species
+        uint256 zombieId,
+        uint256 targetDna,
+        string memory species
     ) internal {
-        Zombie storage myZombie = zombies[_zombieId];
+        Zombie storage myZombie = zombies[zombieId];
         require(_isReady(myZombie), "Zombie is not ready");
-        _targetDna = _targetDna % dnaModulus;
-        uint256 newDna = (myZombie.dna + _targetDna) / 2;
+        targetDna = targetDna % DNA_MODULUS;
+        uint256 newDna = (myZombie.dna + targetDna) / 2;
 
         if (
-            keccak256(abi.encodePacked(_species)) ==
+            keccak256(abi.encodePacked(species)) ==
             keccak256(abi.encodePacked("kitty"))
         ) {
             newDna = newDna - (newDna % 100) + 99;
@@ -65,9 +65,9 @@ abstract contract ZombieFeeding is ZombieFactory {
         _triggerCooldown(myZombie);
     }
 
-    function feedOnKitty(uint256 _zombieId, uint256 _kittyId) public {
+    function feedOnKitty(uint256 zombieId, uint256 kittyId) public {
         uint256 kittyDna;
-        (, , , , , , , , , kittyDna) = kittyContract.getKitty(_kittyId);
-        _feedAndMultiply(msg.sender, _zombieId, kittyDna, "kitty");
+        (, , , , , , , , , kittyDna) = kittyContract.getKitty(kittyId);
+        _feedAndMultiply(msg.sender, zombieId, kittyDna, "kitty");
     }
 }

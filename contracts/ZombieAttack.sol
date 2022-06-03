@@ -4,8 +4,7 @@ pragma solidity ^0.8.7;
 import "./ZombieHelper.sol";
 
 abstract contract ZombieAttack is ZombieHelper {
-    uint256 private _randNonce = 0;
-    uint256 private _attackVictoryProbability = 70;
+    uint256 private constant ATTACK_VICTORY_PROBABILITY = 70;
 
     event Attacked(
         uint256 indexed attackerId,
@@ -16,46 +15,45 @@ abstract contract ZombieAttack is ZombieHelper {
 
     function _attack(
         address attacker,
-        uint256 _attackerId,
-        uint256 _targetId,
-        uint256 _randNumber
+        uint256 attackerId,
+        uint256 targetId,
+        uint256 randNumber
     ) internal {
-        Zombie storage myZombie = zombies[_attackerId];
-        Zombie storage enemyZombie = zombies[_targetId];
-        bool win = false;
-        if (_randNumber <= _attackVictoryProbability) {
-            win = true;
+        Zombie storage myZombie = zombies[attackerId];
+        Zombie storage enemyZombie = zombies[targetId];
+        bool win = randNumber >= ATTACK_VICTORY_PROBABILITY;
+        if (win) {
             myZombie.winCount++;
             myZombie.level++;
             enemyZombie.lossCount++;
-            _feedAndMultiply(attacker, _attackerId, enemyZombie.dna, "zombie");
+            _feedAndMultiply(attacker, attackerId, enemyZombie.dna, "zombie");
         } else {
             myZombie.lossCount++;
             enemyZombie.winCount++;
             _triggerCooldown(myZombie);
         }
-        emit Attacked(_attackerId, _targetId, ownerOf(_targetId), win);
+        emit Attacked(attackerId, targetId, ownerOf(targetId), win);
     }
 
-    function attack(uint256 _zombieId, uint256 _targetId)
+    function attack(uint256 zombieId, uint256 targetId)
         external
-        onlyOwnerOf(_zombieId)
+        onlyOwnerOf(zombieId)
     {
         require(
-            ownerOf(_zombieId) != ownerOf(_targetId),
+            ownerOf(zombieId) != ownerOf(targetId),
             "Cannot attack your own zombie"
         );
         uint256 requestId = COORDINATOR.requestRandomWords(
             keyHash,
             subscriptionId,
-            requestConfirmations,
-            callbackGasLimit,
-            numWords
+            REQUEST_CONFIRMATIONS,
+            CALLBACK_GAS_LIMIT,
+            NUM_WORDS
         );
         _attackRequests[requestId] = AttackRequest(
             msg.sender,
-            _zombieId,
-            _targetId
+            zombieId,
+            targetId
         );
         emit RandomRequest(requestId, msg.sender);
     }

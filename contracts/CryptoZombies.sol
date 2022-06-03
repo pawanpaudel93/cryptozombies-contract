@@ -5,19 +5,15 @@ import "./ZombieAttack.sol";
 
 contract CryptoZombies is ZombieAttack {
     constructor(
-        string memory _name,
-        string memory _symbol,
+        string memory name,
+        string memory symbol,
         uint64 _subscriptionId,
-        address _vrfCoordinator,
+        address vrfCoordinator,
         bytes32 _keyHash
-    ) ERC721(_name, _symbol) VRFConsumerBaseV2(_vrfCoordinator) {
-        COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
+    ) ERC721(name, symbol) VRFConsumerBaseV2(vrfCoordinator) {
+        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
         subscriptionId = _subscriptionId;
         keyHash = _keyHash;
-    }
-
-    function kill() public onlyOwner {
-        selfdestruct(payable(owner()));
     }
 
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
@@ -33,7 +29,7 @@ contract CryptoZombies is ZombieAttack {
         );
 
         if (createRequest.requester != address(0)) {
-            uint256 randDna = randomWords[0] % dnaModulus;
+            uint256 randDna = randomWords[0] % DNA_MODULUS;
             delete _createRequests[requestId];
             _createZombie(
                 createRequest.requester,

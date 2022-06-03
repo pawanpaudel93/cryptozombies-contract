@@ -6,53 +6,49 @@ import "./ZombieFeeding.sol";
 abstract contract ZombieHelper is ZombieFeeding {
     uint256 public levelUpFee = 0.001 ether;
 
-    modifier aboveLevel(uint256 _level, uint256 _zombieId) {
-        require(
-            zombies[_zombieId].level >= _level,
-            "Zombie is not above level"
-        );
+    modifier aboveLevel(uint256 level, uint256 zombieId) {
+        require(zombies[zombieId].level >= level, "Zombie is not above level");
         _;
     }
 
     function withdraw() external onlyOwner {
-        address _owner = owner();
-        payable(_owner).transfer(address(this).balance);
+        payable(owner()).transfer(address(this).balance);
     }
 
-    function setLevelUpFee(uint256 _fee) external onlyOwner {
-        levelUpFee = _fee;
+    function setLevelUpFee(uint256 fee) external onlyOwner {
+        levelUpFee = fee;
     }
 
-    function levelUp(uint256 _zombieId) external payable {
+    function levelUp(uint256 zombieId) external payable {
         require(msg.value == levelUpFee, "Not enough ether");
-        zombies[_zombieId].level++;
+        zombies[zombieId].level++;
     }
 
-    function changeName(uint256 _zombieId, string memory _newName)
+    function changeName(uint256 zombieId, string memory newName)
         external
-        aboveLevel(2, _zombieId)
-        onlyOwnerOf(_zombieId)
+        aboveLevel(2, zombieId)
+        onlyOwnerOf(zombieId)
     {
-        zombies[_zombieId].name = _newName;
+        zombies[zombieId].name = newName;
     }
 
-    function changeDna(uint256 _zombieId, uint256 _newDna)
+    function changeDna(uint256 zombieId, uint256 newDna)
         external
-        aboveLevel(20, _zombieId)
-        onlyOwnerOf(_zombieId)
+        aboveLevel(20, zombieId)
+        onlyOwnerOf(zombieId)
     {
-        zombies[_zombieId].dna = _newDna;
+        zombies[zombieId].dna = newDna;
     }
 
-    function getZombiesByOwner(address _owner)
+    function getZombiesByOwner(address owner)
         external
         view
         returns (Zombie[] memory)
     {
-        Zombie[] memory ownerZombies = new Zombie[](balanceOf(_owner));
+        Zombie[] memory ownerZombies = new Zombie[](balanceOf(owner));
         uint256 counter = 0;
         for (uint256 i = 0; i < zombies.length; i++) {
-            if (ownerOf(i) == _owner) {
+            if (ownerOf(i) == owner) {
                 ownerZombies[counter] = zombies[i];
                 counter++;
             }
@@ -60,21 +56,21 @@ abstract contract ZombieHelper is ZombieFeeding {
         return ownerZombies;
     }
 
-    function getZombies(uint256 _startIndex, uint256 _totalSize)
+    function getZombies(uint256 startIndex, uint256 totalSize)
         external
         view
         returns (Zombie[] memory)
     {
-        if (_startIndex > zombies.length) {
+        if (startIndex > zombies.length) {
             return new Zombie[](0);
         }
-        uint256 _endIndex = _startIndex + _totalSize;
+        uint256 _endIndex = startIndex + totalSize;
         if (_endIndex > zombies.length) {
             _endIndex = zombies.length;
         }
-        Zombie[] memory zombiesToReturn = new Zombie[](_endIndex - _startIndex);
-        for (uint256 i = _startIndex; i < _endIndex; i++) {
-            zombiesToReturn[i - _startIndex] = zombies[i];
+        Zombie[] memory zombiesToReturn = new Zombie[](_endIndex - startIndex);
+        for (uint256 i = startIndex; i < _endIndex; i++) {
+            zombiesToReturn[i - startIndex] = zombies[i];
         }
         return zombiesToReturn;
     }
