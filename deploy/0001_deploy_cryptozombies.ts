@@ -50,7 +50,7 @@ const deployCryptoZombies: DeployFunction = async function (
         await tx.wait();
     }
     if (!DEVELOPMENT_NETWORKS.includes(network.name)) {
-        // sleep for 30s
+        // sleep for 60s
         await new Promise((resolve) => setTimeout(resolve, 60000));
         await run("verify:verify", {
             address: CryptoZombies.address,

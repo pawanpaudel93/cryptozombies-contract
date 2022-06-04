@@ -50,6 +50,7 @@ abstract contract ZombieFactory is ERC721, Ownable, VRFConsumerBaseV2 {
     Zombie[] public zombies;
     mapping(uint256 => AttackRequest) internal _attackRequests;
     mapping(uint256 => Request) internal _createRequests;
+    mapping(address => bool) public randomZombieRequested;
 
     function _createZombie(
         address creator,
@@ -78,6 +79,8 @@ abstract contract ZombieFactory is ERC721, Ownable, VRFConsumerBaseV2 {
 
     function createRandomZombie(string memory name) public {
         require(balanceOf(msg.sender) == 0, "You already have a zombie");
+        require(randomZombieRequested[msg.sender] == false, "You already requested a zombie");
+        randomZombieRequested[msg.sender] = true;
         uint256 requestId = COORDINATOR.requestRandomWords(
             keyHash,
             subscriptionId,
